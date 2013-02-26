@@ -81,6 +81,7 @@ module Resque
         # Now start the scheduling part of the loop.
         loop do
           begin
+            log! "id: #{identifier}, has_lock? #{has_lock?}"
             if has_lock? || try_lock?
               update_lock_expiry
               handle_delayed_items
