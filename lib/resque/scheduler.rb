@@ -81,9 +81,8 @@ module Resque
         # Now start the scheduling part of the loop.
         loop do
           begin
-            log! "id: #{identifier}, has_lock? #{has_lock?}"
+            log! "#{identifier} is master?: #{has_lock?}"
             if has_lock? || try_lock?
-              log! "processing"
               update_lock_expiry
               handle_delayed_items
               update_schedule if dynamic
@@ -171,8 +170,10 @@ module Resque
             if !config[interval_type].nil? && config[interval_type].length > 0
               args = optionizate_interval_value(config[interval_type])
               @@scheduled_jobs[name] = rufus_scheduler.send(interval_type, *args) do
-                log! "queueing #{config['class']} (#{name})"
-                handle_errors { enqueue_from_config(config) }
+                if has_lock? || try_lock?
+                  log! "queueing #{config['class']} (#{name})"
+                  handle_errors { enqueue_from_config(config) }
+                end
               end
               interval_defined = true
               break
@@ -348,3 +349,4 @@ module Resque
   end
 
 end
+
