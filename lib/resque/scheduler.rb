@@ -83,6 +83,7 @@ module Resque
           begin
             log! "id: #{identifier}, has_lock? #{has_lock?}"
             if has_lock? || try_lock?
+              log! "processing"
               update_lock_expiry
               handle_delayed_items
               update_schedule if dynamic
